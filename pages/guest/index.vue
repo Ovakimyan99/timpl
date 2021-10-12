@@ -4,7 +4,7 @@
       <picture class="employee__img-wrapper" ref="employeeImgWrap">
 <!--        <source class="employee__img" srcset="~/static/profile/img/ashot.webp" type="image/webp">-->
 <!--        <source class="employee__img" srcset="~/static/profile/img/ashot.jpg" type="image/jpeg">-->
-        <img class="employee__img" ref="employeeImg" src="~/static/profile/img/ashot.jpg" alt="Ашотик">
+        <img class="employee__img" ref="employeeImg" :src="this.photoUser" alt="Ашотик">
       </picture>
       <div class="employee-info">
         <span class="employee-text">
@@ -15,14 +15,84 @@
       <span class="employee-info--substrate"></span>
     </div>
 
-    <form @submit.prevent="submitHandler" ref="form">
-      <h1>hello</h1>
-      <input type="submit" value="алоо">
-    </form>
+    <form class="form" @submit.prevent="submitHandler">
+      <div class="form-total">Total amount: <b class="form-total__amount">$250</b></div>
 
-    <div class="rating-stars">
-      <font-awesome-icon class="star" :icon="['fas', 'star']" />
-    </div>
+      <section class="form-tips form-tips--curve">
+        <div class="form-tips__appeal">Say <i>Thanks</i> with a tip</div>
+        <input type="number" placeholder="Tip amount" class="form-tips__input">
+        <div class="form-tips__options">
+          <input type="button" value="5%" class="form-tips__options-btn">
+          <input type="button" value="10%" class="form-tips__options-btn active">
+          <input type="button" value="15%" class="form-tips__options-btn">
+        </div>
+      </section>
+
+      <section class="form-tips form-tips--decor">
+        <div class="form-tips__appeal form-tips__appeal--decor">How was your experience today?</div>
+
+        <div class="form-tips__rating-wrapper">
+          <div class="form-tips__rating" ref="ratingList">
+            <font-awesome-icon
+              v-for="n of 5"
+              :key="n"
+              @click="() => serviceEvaluation(n)"
+              :icon="['fas', 'star']"
+              class="form-tips__star"
+            />
+          </div>
+        </div>
+
+        <div class="form-tips__service" v-if="this.serviceEvaluationData.stars">
+          <div class="form-tips__appeal">How can we improve your experience?</div>
+          <section class="form-service__wrapper-options">
+            <div class="form-service__option" :key="option.criteria" v-for="(option, i) of this.serviceEvaluationData.upgrade">
+              <input type="checkbox" :id="option.criteria" v-model="option.state" hidden>
+              <span
+                class="form-tips__conditions-cb"
+                @click="serviceEvaluationData.upgrade[i].state = !serviceEvaluationData.upgrade[i].state"
+                :class="{active: option.state}"
+              />
+              <label :for="option.criteria" class="form-service__text">{{ option.criteria }}</label>
+            </div>
+          </section>
+          <input type="text" class="form-service__feedback" placeholder="Leave feedback (optional)" v-model="serviceEvaluationData.feedback">
+        </div>
+      </section>
+
+      <section class="form-tips">
+        <div class="form-tips__full-sum">
+          <label class="form-tips__agreement" for="checkboxPay">
+            <span class="form-tips__notice">Send the full amount</span>
+            You compensate service commission, and $2 will be debited from your card.
+          </label>
+          <input id="checkboxPay" type="checkbox" hidden v-model="giveAllTheMoney">
+          <div
+            class="form-tips__agreement-btn"
+            :class="{active: giveAllTheMoney}"
+            @click="giveAllTheMoney = !giveAllTheMoney"
+          />
+        </div>
+        <input
+          type="submit"
+          class="form-tips__payment form-tips__payment--service"
+          value=""
+          :style="{backgroundImage: `url(../img-base/payment/${applePay ? 'applePay' : 'googlePay'}.svg)`}"
+        >
+        <input value="Pay by card" type="submit" class="form-tips__payment">
+
+        <div class="form-tips__conditions">
+          <input v-model="formTipsConditions" hidden type="checkbox" id="formTipsConditions">
+          <span
+            class="form-tips__conditions-cb"
+            @click="formTipsConditions = !formTipsConditions"
+            :class="{active: formTipsConditions}"
+          />
+          <label for="formTipsConditions" class="form-tips__conditions-text">I agree with Terms&Conditions
+            and Privacy policy</label>
+        </div>
+      </section>
+    </form>
   </div>
 </template>
 
@@ -30,8 +100,52 @@
 export default {
   name: 'IndexGuest',
   layout: 'GuestLayout',
+  data: () => ({
+    giveAllTheMoney: false,
+    applePay: true,
+    formTipsConditions: true,
+    serviceEvaluationData: {
+      stars: null,
+      upgrade: [
+        {
+          criteria: 'Service',
+          state: false
+        },
+        {
+          criteria: 'Cleanliness',
+          state: false
+        },
+        {
+          criteria: 'Atmosphere',
+          state: false
+        },
+        {
+          criteria: 'Food quality',
+          state: false
+        }
+      ],
+      feedback: ''
+    },
+    userName: 'anna'
+  }),
+  computed: {
+    photoUser () {
+      return `./profile/img/${this.userName}.jpg`
+    }
+  },
   mounted () {
     this.changeEmployeeImg()
+
+    let counter = 1
+    const photoUsers = ['anna', 'artur', 'ashot', 'jill', 'johnny', 'marina', 'milena']
+    setInterval(() => {
+      if (counter < photoUsers.length) {
+        this.userName = photoUsers[counter]
+        counter++
+      } else {
+        counter = 1
+      }
+    }, 2000)
   },
   methods: {
     changeEmployeeImg () {
@@ -41,6 +155,19 @@ export default {
       employeeImgWrap.style.height = employeeImgWrap.getBoundingClientRect().width * 1.211 + 'px'
       imgEmployee.style.height = employeeImgWrap.getBoundingClientRect().height * 0.95 + 'px'
       imgEmployee.style.width = employeeImgWrap.getBoundingClientRect().width * 0.95 + 'px'
+    },
+    serviceEvaluation (order) {
+      const ratingList = this.$refs.ratingList
+      const stars = ratingList.querySelectorAll('.form-tips__star')
+      stars.forEach((item) => {
+        item.classList.remove('active')
+      })
+      stars.forEach((item, i) => {
+        if (i < order) {
+          item.classList.add('active')
+        }
+      })
+      this.serviceEvaluationData.stars = order
     },
     submitHandler () {
       console.log('На этом этапе сохарняем данные!')
@@ -79,6 +206,7 @@ $employeeSubBottom: 35;
 .employee {
   position: relative;
   z-index: 3;
+  margin-bottom: 26px;
 
   &__img-wrapper {
     position: relative;
@@ -181,6 +309,371 @@ $employeeSubBottom: 35;
 
   &-work {
     @include defineFont(600, 13px, 16px);
+  }
+}
+
+.form {
+  position: relative;
+
+  &-total {
+    background-color: #2CEF34;
+    position: absolute;
+    top: -200px;
+    right: 30px;
+    z-index: 4;
+    padding: 35px 32px;
+    border-radius: 50%;
+    max-width: 70px;
+    text-align: center;
+  }
+
+  &-total__amount {
+    @include defineFont(700, 20px, 24px)
+  }
+
+  &-tips {
+    padding: 30px 23px;
+    background-color: $white;
+    border-radius: 28px;
+    z-index: 3;
+
+    &--decor {
+      position: relative;
+
+      &:after, &:before {
+        content: '........................';
+        position: absolute;
+        width: calc(100% - 60px);
+        left: 30px;
+        margin: 0 auto;
+
+        line-height: 0;
+        color: $accent;
+        font-size: 38px;
+        letter-spacing: 8.4px;
+        height: 14px;
+        overflow: hidden;
+      }
+
+      &:after {
+        bottom: -4px;
+      }
+
+      &:before {
+        top: -10px;
+      }
+    }
+
+    &--curve {
+      position: relative;
+      &:before {
+        content: '';
+        position: absolute;
+        transform-origin: 0 100%;
+        transform: perspective(500px) rotateY(-8deg);
+        width: 79%;
+        height: 188px;
+        background: $white;
+        padding: 30px 23px;
+        border-radius: 28px;
+        left: 0;
+        top: 0;
+        z-index: -1;
+      }
+    }
+  }
+
+  &-tips__appeal {
+    color: $white;
+    background-color: $accent;
+    padding: 6px 15px 8px;
+    @include defineFont(600, 21px, 1.3);
+    @include roundedRectangle(8px);
+    display: inline;
+    box-decoration-break: clone;
+
+    &--decor {
+      position: relative;
+
+      &:before {
+        content: '';
+        display: none;
+        position: absolute;
+        bottom: 18px;
+        background-color: $accent;
+        width: 17px;
+        height: 17px;
+        right: -8px;
+        transform: rotate(45deg);
+
+        @media (min-width:360px) {
+          display: block;
+        }
+      }
+
+      &:after {
+        content: '';
+        position: absolute;
+        bottom: 10px;
+        background-color: $white;
+        width: 17px;
+        height: 17px;
+        border-radius: 50%;
+        right: -17px;
+      }
+    }
+
+    i {
+      margin: 0 3px 0 -3px;
+    }
+  }
+
+  &-tips__input {
+    outline: none;
+    width: 100%;
+    caret-color: $accent-placeholder;
+    color: $accent-placeholder;
+    margin: 16px 0;
+    background: $white;
+    border: 2px solid $accent;
+    padding: 16px 0;
+    text-align: center;
+    box-sizing: border-box;
+    @include roundedRectangle(15px);
+    @include defineFont(600, 20px, 24px);
+    transition: 0.3s ease-in;
+
+    &::placeholder {
+      color: $accent-placeholder;
+    }
+
+    &:focus {
+      outline: none;
+      border: 2px solid $blue-name;
+      box-shadow: 0 0 0 0;
+    }
+  }
+
+  &-tips__options {
+    display: flex;
+    justify-content: space-between;
+
+    &-btn {
+      padding: 14px 0;
+      flex: 1;
+      background: rgba(176, 176, 176, 0.15);
+      color: $black;
+      outline: none;
+      border: none;
+      max-width: 94px;
+      @include defineFont(600, 24px, 30px);
+      @include roundedRectangle(20px);
+
+      &.active {
+        background-color: $blue-name;
+        color: $white;
+      }
+    }
+  }
+
+  &-tips__rating-wrapper {
+    text-align: center;
+  }
+
+  &-tips__rating {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    margin: 20px auto 0;
+    color: #EEE9FC;
+  }
+
+  &-tips__star {
+    color: #EEE9FC;
+    font-size: 38px;
+    height: 50px;
+    line-height: 1;
+
+    &:not(:last-child) {
+      margin-right: 10px;
+    }
+
+    &:hover, &.active {
+      color: $star;
+    }
+  }
+
+  &-tips__full-sum {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &-tips__agreement {
+    text-align: left;
+    color: $grey;
+    @include defineFont(500, 12px, 15px);
+    margin-right: 10px;
+  }
+
+  &-tips__notice {
+    color: $black;
+    display: block;
+    @include defineFont(600, 13px, 16px);
+  }
+
+  &-tips__agreement-btn {
+    position: relative;
+    min-width: 54px;
+    height: 30px;
+
+    background: $green-checkbox;
+    border-radius: 22px;
+    transition: 0.3s ease-in;
+
+    &:after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: $white;
+      box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: 0.3s ease-in;
+    }
+
+    &.active {
+      background: $green-btn;
+
+      &:after {
+        left: 27px;
+      }
+    }
+  }
+
+  &-tips__payment {
+    @include roundedRectangle(22px);
+    @include defineFont(600, 18px, 22px);
+    background: $green-btn;
+    color: #3A414A;
+    display: block;
+    margin: 13px 0 25px;
+    width: 100%;
+    height: 60px;
+    border: none;
+    outline: none;
+    padding: 0;
+  }
+
+  &-tips__payment--service {
+    border: 1.5px solid #DDE3F1;
+    margin: 20px 0 13px;
+    width: calc(100% - 3px);
+    height: calc(60px - 3px);
+    background-size: 59px;
+    background-color: $white;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  &-tips__conditions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+
+    &-cb {
+      position: relative;
+      @include roundedRectangle(8px);
+      min-width: 24px;
+      width: 24px;
+      height: 24px;
+      margin: 0;
+      background-color: $green-checkbox;
+
+      &.active {
+        background-color: $green;
+      }
+      &.active:after {
+        border: 3px solid #fcfff4;
+        border-top: none;
+        border-right: none;
+        background: transparent;
+      }
+
+      &:after {
+        content: '';
+        width: 9px;
+        height: 5px;
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        border: 3px solid rgba(252, 255, 244, 0.58);
+        border-top: none;
+        border-right: none;
+        background: transparent;
+        transform: rotate(-45deg);
+      }
+    }
+
+    &-text {
+      @include defineFont(500, 12px, 15px);
+      color: $grey;
+      max-width: 188px;
+      margin-left: 14px;
+    }
+  }
+
+  &-tips__service {
+    margin-top: 30px;
+  }
+
+  &-service__wrapper-options {
+    margin: 24px 0 20px;
+    background: rgba(239, 242, 249, 0.7);
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  &-service__option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    &:not(:last-child) {
+      &:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        height: 1px;
+        background: $grey-lighten;
+        width: calc(100% - 40px);
+      }
+    }
+  }
+
+  &-service__text {
+    display: block;
+    margin-left: 16px;
+    @include defineFont(600, 14px, 17px);
+    color: $black;
+    width: 100%;
+    padding: 4px 0;
+  }
+
+  &-service__feedback {
+    @include defineFont(500, 14px, 17px);
+    @include roundedRectangle(10px);
+    background: #F1F0FD;
+    width: calc(100% - 34px);
+    padding: 17px;
+    text-align: left;
+    justify-content: left;
+    color: #A19BF1;
+    outline: none;
+    border: none;
   }
 }
 </style>
