@@ -1,4 +1,5 @@
 @mixin defineFont ($weight, $size, $lh) {
+  font-family: 'Montserrat', sans-serif;
   font-weight: $weight;
   font-size: $size;
   line-height: $lh;
