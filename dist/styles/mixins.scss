@@ -1,0 +1,13 @@
+@mixin defineFont ($weight, $size, $lh) {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: $weight;
+  font-size: $size;
+  line-height: $lh;
+}
+
+@mixin roundedRectangle ($angle) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $angle;
+}
