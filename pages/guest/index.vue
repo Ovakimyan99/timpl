@@ -9,10 +9,10 @@
             <img ref="employeeImg" class="employee__img" :src="photoUser" alt="Ашотик">
           </picture>
           <div class="employee-info">
-          <span class="employee-text">
-            <b class="employee-name">Philip</b>
-            <span class="employee-work">was your waiter</span>
-          </span>
+            <span class="employee-text">
+              <b class="employee-name">Philip</b>
+              <span class="employee-work">was your waiter</span>
+            </span>
           </div>
           <span class="employee-info--substrate" />
         </div>
@@ -20,7 +20,7 @@
 
       <form class="form" @submit.prevent="submitHandler">
         <section class="form-total">
-          Total amount: <b class="form-total__amount">$250</b>
+          {{ 'totalAmount' | localize }}: <b class="form-total__amount">$250</b>
         </section>
 
         <section class="form-tips form-tips--curve">
@@ -85,10 +85,18 @@
             />
           </div>
           <input
+            v-if="operatingSystem === 'Android'"
             type="submit"
             class="form-tips__payment form-tips__payment--service"
             value=""
-            :style="{backgroundImage: `url(../img-base/payment/${applePay ? 'applePay' : 'googlePay'}.svg)`}"
+            :style="{backgroundImage: `url(../img-base/payment/googlePay.svg)`}"
+          >
+          <input
+            v-else-if="operatingSystem === 'iOS'"
+            type="submit"
+            class="form-tips__payment form-tips__payment--service"
+            value=""
+            :style="{backgroundImage: `url(../img-base/payment/applePay.svg)`}"
           >
           <input value="Pay by card" type="submit" class="form-tips__payment">
 
@@ -109,11 +117,12 @@
 </template>
 
 <script>
+import getMobileOperatingSystem from '../../plugins/device-definition.client'
+
 export default {
   name: 'IndexGuest',
   data: () => ({
     giveAllTheMoney: false,
-    applePay: true,
     formTipsConditions: true,
     serviceEvaluationData: {
       stars: null,
@@ -137,7 +146,8 @@ export default {
       ],
       feedback: ''
     },
-    userName: 'anna'
+    userName: 'anna',
+    operatingSystem: ''
   }),
   computed: {
     photoUser () {
@@ -145,18 +155,13 @@ export default {
     }
   },
   mounted () {
+    // Определяем опреационную систему
+    this.operatingSystem = getMobileOperatingSystem()
+    // Корректируем картинку 1 экрана
     this.changeEmployeeImg()
-
-    let counter = 1
-    const photoUsers = ['anna', 'artur', 'ashot', 'jill', 'johnny', 'marina', 'milena']
-    setInterval(() => {
-      if (counter < photoUsers.length) {
-        this.userName = photoUsers[counter]
-        counter++
-      } else {
-        counter = 1
-      }
-    }, 2000)
+    this.definingUserLanguage()
+    // Меняем главную картинку 1 экрана
+    this.temporarilyChangingTheFirstScreen()
   },
   methods: {
     changeEmployeeImg () {
@@ -182,6 +187,44 @@ export default {
     },
     submitHandler () {
       console.log('На этом этапе сохарняем данные!')
+    },
+    definingUserLanguage () {
+      // let language = window.navigator ? (window.navigator.language || window.navigator.systemLanguage || window.navigator.userLanguage) : 'ru'
+      // language = language.substr(0, 2).toLowerCase()
+      // return language
+      const config = {
+        language: 'en',
+        country: 'RU'
+      }
+
+      const client = window.navigator
+        ? (window.navigator.language ||
+        window.navigator.systemLanguage ||
+        window.navigator.userLanguage)
+        : (config.language + '-' + config.country)
+
+      const language = (client.search('-') > 0)
+        ? client.substring(0, client.search('-')).toLowerCase()
+        : client.toLowerCase()
+
+      const country = (client.search('-') > 0)
+        ? client.substring(client.search('-') + 1, client.length).toLowerCase()
+        : config.country
+
+      console.log('Client language: ' + language)
+      console.log('Client country: ' + country)
+    },
+    temporarilyChangingTheFirstScreen () {
+      let counter = 1
+      const photoUsers = ['anna', 'artur', 'ashot', 'jill', 'johnny', 'marina', 'milena']
+      setInterval(() => {
+        if (counter < photoUsers.length) {
+          this.userName = photoUsers[counter]
+          counter++
+        } else {
+          counter = 1
+        }
+      }, 2000)
     }
   }
 }

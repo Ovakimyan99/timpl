@@ -1,36 +1,19 @@
-const utils = {
-  getUserAgent () {
-    return navigator.userAgent
-  },
-  Android () {
-    return /Android/i.test(this.getUserAgent()) && !this.Windows()
-  },
-  BlackBerry () {
-    return /BlackBerry|BB10|PlayBook/i.test(this.getUserAgent())
-  },
-  iPhone () {
-    return /iPhone/i.test(this.getUserAgent()) && !this.iPad() && !this.Windows()
-  },
-  iPod () {
-    return /iPod/i.test(this.getUserAgent())
-  },
-  iPad () {
-    return /iPad/i.test(this.getUserAgent())
-  },
-  iOS () {
-    return (this.iPad() || this.iPod() || this.iPhone())
-  },
-  Opera () {
-    return /Opera Mini/i.test(this.getUserAgent())
-  },
-  Windows () {
-    return /Windows Phone|IEMobile|WPDesktop/i.test(this.getUserAgent())
-  },
-  any () {
-    return (this.Android() || this.BlackBerry() || this.iOS() || this.Opera() || this.Windows())
+export default function getMobileOperatingSystem () {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera
+
+  // Windows Phone must come first because its UA also contains "Android"
+  if (/windows phone/i.test(userAgent)) {
+    return 'Windows Phone'
   }
+
+  if (/android/i.test(userAgent)) {
+    return 'Android'
+  }
+
+  // iOS detection from: http://stackoverflow.com/a/9039885/177710
+  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+    return 'iOS'
+  }
+
+  return 'unknown'
 }
-
-const device = utils.any() ? utils.any() : utils
-
-export default device
