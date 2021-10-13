@@ -1,1 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[3],{232:function(e,t,n){"use strict";n.r(t);var c={name:"payByCard",layout:"GuestLayout"},r=n(23),component=Object(r.a)(c,(function(){var e=this,t=e.$createElement;return(e._self._c||t)("div",[e._v("pay by card")])}),[],!1,null,"52a7a0c1",null);t.default=component.exports}}]);
