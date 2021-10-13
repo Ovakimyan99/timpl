@@ -1,11 +1,11 @@
 <template>
-  <h1>index</h1>
+  <div>pay by card</div>
 </template>
 
 <script>
 export default {
-  name: 'index',
-  layout: 'empty'
+  name: 'payByCard',
+  layout: 'GuestLayout'
 }
 </script>
 
